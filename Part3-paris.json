@@ -1,0 +1,40 @@
+1. The name of the places whose category is “accommodation”
+db.paris.find(
+    {"category":"accommodation"},
+    {"name":1,"category":1}
+    )
+
+2. The name and phone number of places with a phone number entered ($exists, $ne);
+db.paris.find({"contact.phone":{"$exists":true,"$ne":null}},{"name":1,"contact.phone":1})
+
+3. Name and contacts of places with” website” and” Foursquare” provided;
+db.paris.find({"contact.website":{"$exists":true},"contact.Foursquare":{"$exists":true}},{"name":1,"contact.website":1,"contact.Foursquare":1})
+
+4. Name of places whose name contains the word “hotel” (pay attention to case);
+db.paris.find({"name":{"$regex":"hotel","$options":"i"}},{"_id":0,"name":1})
+
+
+5. Name and services of places offering 5 services;
+db.paris.find({"services":{"$size":5}},{"name":1,"services":1})
+
+6. Categories of places with at least a rating (reviews.rating) of 4 or more;
+ db.paris.find({"reviews.rating":{"$gte":4}},{"name":1,"category":1})
+
+7. GPS coordinates of places whose address contains “rue de rome”;
+ db.paris.find({"location.address":{"$regex":"rue de rome","$options":"i"}},{"name":1,"location.coord.coordinates":1})
+
+8. For each ”poi” category place name, give the number of reviews whose source (reviews.source) is “Facebook”. Sort in descending order;
+db.paris.aggregate([
+    {$match:{"category":"poi","reviews.source":"Facebook"}},
+    {$group:{_id:"$name",numberOfReview:{$sum:{$size:"$reviews"}}}},
+    {$sort:{"numberOfReview":-1}},
+])
+
+9. For each place name in the “restaurant” category, give the average rating and the number of comments.
+db.paris.aggregate([
+    {$match:{"category":"restaurant"}},
+    {$unwind:"$reviews"},
+    {$group:{_id:"$name",averageRating:{$avg:"$reviews.rating"},numberOfComments:{$sum:1}}},
+    {$project:{"_id":0,"name":1,"averageRating":1,"numberOfComments":1}},
+])
+    
