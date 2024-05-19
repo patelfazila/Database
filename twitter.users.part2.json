@@ -1,0 +1,161 @@
+[{
+  "_id": 1,
+  "screenName": "Isy",
+  "nbFollowers": 3,
+  "tweets": [
+    {
+      "text": " This is my first tweet #yey #Happy ",
+      "createdAt": "2016−02−10T10 : 50 : 42",
+      "hashtags": [
+        " yey ",
+        " Happy"
+      ]
+    },
+    {
+      "text": " Dany@ what are your plans for the evening? ",
+      "createdAt": "2016−02−10T18 : 50 : 42 "
+    },
+    {
+      "text": " Go and visit this: http : // b i t.ly/29O9yYc #yey #DanseWithBirds",
+      "createdAt": "2016−05−10T09 : 12 : 42 ",
+      "hashtags": [
+        " yey ",
+        "dancewithbirds"
+      ]
+    },
+    {
+      "text": "Looking forward for some holidays ! #IneedSomeSun",
+      "createdAt": "2016−07−04T10 : 17 : 25 ",
+      "hashtags": [
+        " jeVeuxDuSoleil "
+      ]
+    }
+  ],
+  "followers": [
+    2,
+    3,
+    4
+  ]
+},
+{
+  "_id": 2,
+  "screenName": "Dany",
+  "nbFollowers": 2,
+  "tweets": [
+    {
+      "text": " Anyone tried the latest iPhone? http://bit.ly/29TunHh #LoveApple #iPhone15",
+      "createdAt": "2016−01−11T09 : 12 : 42 ",
+      "hashtags": [
+        "loveapple",
+        "iphone15"
+      ]
+    },
+    {
+      "text": "@Isy are you coming to the party? #HappyHour ",
+      "createdAt": "2016−02−10T18 : 54 : 13",
+      "hashtags": [
+        "HappyHour"
+      ]
+    }
+  ],
+  "followers": [
+    3,
+    4
+  ]
+},
+{
+  "_id": 3,
+  "screenName": "Rosy",
+  "nbFollowers": 0,
+  "tweets": [
+    {
+      "text": "This is a tweet #Happy",
+      "createdAt": "2016-04-12T18:59:03",
+      "hashtags": [
+        "Happy"
+      ]
+    },
+    {
+      "text": "I have a lot to say #Happy",
+      "createdAt": "2016-04-12T18:54:13",
+      "hashtags": [
+        "Happy"
+      ]
+    }
+  ]
+},
+{
+  "_id": 4,
+  "screenName": "Anny",
+  "nbFollowers": 3,
+  "followers": [
+    1,
+    2,
+    3
+  ]
+}]
+
+1.  Change the number of followers of user Isy to 5.
+db.users.updateOne(
+   { screenName: "Isy" },
+   { $set: { nbFollowers: 5 } }
+)
+
+2. Add the tweet text: "yay a new tweet!" to the user with _id: 2. 
+db.users.updateOne(
+   {“ _id”: 2 },
+   { $push: { “tweets”:  {“text”: "yay a new tweet!" } }}
+)
+
+3. Give the query to obtain the second tweet from user "Rosy” 
+db.users.aggregate([
+  { $match: { “screenName”: "Rosy" } },
+  { $unwind: "$tweets" },
+  { $skip: 1 },
+  { $limit: 1 }
+])
+
+4. Give the query allowing you to obtain the tweets containing an url. 
+db.users.find({ tweets: { $elemMatch: { text: /https?:\/\/[^\s]+/ } } })
+
+5. Give the query to obtain the greatest number of followers. 
+db.users.aggregate([
+  { $sort: { nbFollowers: -1 } },
+  { $limit: 1 }
+])
+
+6. Give the query to get the users who are followed by users 2 or 4 
+db.users.find({ followers: { $in: [2, 4] } }) 
+
+7. Give the query to obtain the users whose first tweet dates from April 2016. 
+db.users.find({"tweets.createdAt":{$regex:/^2016-04/}});
+
+8. Give the query to get the users who used the hashtag “Happy” 
+db.users.find({
+  "tweets.hashtags": { $in: ["Happy"] }
+})
+
+9. Give the query to get the number of tweets per user. 
+db.users.aggregate([
+  {
+    $unwind: "$tweets" 
+  },
+  {
+    $group: {
+      _id: "$screenName",
+      count: { $sum: 1 } 
+    }
+  }
+])
+
+10. Give the query to get the number of hashtags for each tweet 
+db.users.aggregate([
+  {$unwind: "$tweets"   },
+  {
+    $project: {
+      screenName: 1,      
+      "tweets.text": 1,      
+        numHashtags: { $size: { $ifNull: [ "$tweets.hashtags", [] ] } }     }
+  }
+])
+
